@@ -2,23 +2,38 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Livewire\Livewire;
+use Inertia\Testing\AssertableInertia as Assert;
+use Laravel\Fortify\Features;
 
-beforeEach(function () {
-});
+test('security page is displayed', function () {
+    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
-test('security settings page can be rendered', function () {
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => true,
+    ]);
+
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)
+    $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('security.edit'));
-
-    $response->assertOk();
+        ->get(route('security.edit'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('settings/security')
+            ->where('canManageTwoFactor', true)
+            ->where('twoFactorEnabled', false),
+        );
 });
 
-test('security settings page requires password confirmation when enabled', function () {
+test('security page requires password confirmation when enabled', function () {
+    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+
     $user = User::factory()->create();
+
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => true,
+    ]);
 
     $response = $this->actingAs($user)
         ->get(route('security.edit'));
@@ -26,7 +41,9 @@ test('security settings page requires password confirmation when enabled', funct
     $response->assertRedirect(route('password.confirm'));
 });
 
-test('security settings page renders without two factor when feature is disabled', function () {
+test('security page renders without two factor when feature is disabled', function () {
+    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+
     config(['fortify.features' => []]);
 
     $user = User::factory()->create();
@@ -35,45 +52,46 @@ test('security settings page renders without two factor when feature is disabled
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'))
         ->assertOk()
-        ->assertSee('Update password')
-        ->assertDontSee('Manage your passkeys for passwordless sign-in')
-        ->assertDontSee('Add a passkey to sign in without a password')
-        ->assertDontSee('Two-factor authentication');
-});
-
-test('two factor authentication disabled when confirmation abandoned between requests', function () {
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('settings/security')
+            ->where('canManageTwoFactor', false)
+            ->missing('twoFactorEnabled')
+            ->missing('requiresConfirmation'),
+        );
 });
 
 test('password can be updated', function () {
-    $user = User::factory()->create([
-        'password' => Hash::make('password'),
-    ]);
+    $user = User::factory()->create();
 
-    $this->actingAs($user);
+    $response = $this
+        ->actingAs($user)
+        ->from(route('security.edit'))
+        ->put(route('user-password.update'), [
+            'current_password' => 'password',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ]);
 
-    $response = Livewire::test('pages::settings.security')
-        ->set('current_password', 'password')
-        ->set('password', 'new-password')
-        ->set('password_confirmation', 'new-password')
-        ->call('updatePassword');
-
-    $response->assertHasNoErrors();
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('security.edit'));
 
     expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
 });
 
 test('correct password must be provided to update password', function () {
-    $user = User::factory()->create([
-        'password' => Hash::make('password'),
-    ]);
+    $user = User::factory()->create();
 
-    $this->actingAs($user);
+    $response = $this
+        ->actingAs($user)
+        ->from(route('security.edit'))
+        ->put(route('user-password.update'), [
+            'current_password' => 'wrong-password',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ]);
 
-    $response = Livewire::test('pages::settings.security')
-        ->set('current_password', 'wrong-password')
-        ->set('password', 'new-password')
-        ->set('password_confirmation', 'new-password')
-        ->call('updatePassword');
-
-    $response->assertHasErrors(['current_password']);
+    $response
+        ->assertSessionHasErrors('current_password')
+        ->assertRedirect(route('security.edit'));
 });

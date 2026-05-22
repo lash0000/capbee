@@ -1,4 +1,5 @@
 /.phpunit.cache
+/bootstrap/ssr
 /node_modules
 /public/build
 /public/fonts-manifest.dev.json
@@ -6,11 +7,14 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/resources/js/actions
+/resources/js/routes
+/resources/js/wayfinder
 /vendor
+.DS_Store
 .env
 .env.backup
 .env.production
-.env.example
 .phpactor.json
 .phpunit.result.cache
 Homestead.json

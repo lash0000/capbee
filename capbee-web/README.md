@@ -1,4 +1,6 @@
-A laravel setup for DB setup just ask to ask.
+A laravel setup for DB just ask to ask.
+
+## Project Type: Laravel and React
 
 ## Installation
 
@@ -6,7 +8,6 @@ Install dependencies:
 
 ```bash
 composer install
-npm install
 ```
 
 Setup environment:
