@@ -6,9 +6,11 @@ It depends you must follow recommendation for your platform (Windows, macOS and 
 
 ## Get dependencies then run it on your platform
 
+```bash
 flutter pub get
 flutter run -d linux-or-windows-or-macos
 (ex: flutter run -d windows)
+```
 
 ## For development (How to run):
 flutter run -d web-server --web-port=8080
