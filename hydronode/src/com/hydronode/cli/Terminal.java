@@ -14,7 +14,16 @@ public final class Terminal {
     }
 
     public static boolean isInteractive() {
-        return System.console() != null;
+        return !isPlain() && System.console() != null;
+    }
+
+    /**
+     * Safe mode for consoles that do not understand ANSI escapes (legacy
+     * {@code cmd.exe}). Set {@code HYDRONODE_PLAIN=1} to disable colour, screen
+     * clearing, in-place redraw and the row-by-row animation.
+     */
+    public static boolean isPlain() {
+        return System.getenv("HYDRONODE_PLAIN") != null;
     }
 
     /** Clears the screen and homes the cursor. */
