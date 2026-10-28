@@ -1,0 +1,5 @@
+out/
+data/*.csv
+data/*.zip
+data/*/
+*.class
