@@ -11,29 +11,8 @@ chmod +x run.sh     # first time only
 ./run.sh
 ```
 
-### Windows (cmd or PowerShell)
-
-```bat
-cd hydronode
-run.cmd
-```
-
-```powershell
-cd hydronode
-.\run.ps1           # if blocked: Set-ExecutionPolicy -Scope Process Bypass
-```
-
-Same JDK 17+ requirement, no extra dependency. Both launchers switch the console
-to UTF-8 so the box drawing renders. On a legacy `cmd.exe` window where escape
-codes show up as raw `←[96m` text, enable plain mode first:
-
-```bat
-set HYDRONODE_PLAIN=1
-run.cmd
-```
-
-Plain mode turns off colour, screen clearing, the live progress redraw and the
-row-by-row animation — everything else works the same.
+> [!IMPORTANT]  
+> For windows there is run.cmd and run.ps1 support anyway. If there is issue just run `Set-ExecutionPolicy -Scope Process Bypass`
 
 Check your JDK first — anything below 17 will not compile:
 
